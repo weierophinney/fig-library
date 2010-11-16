@@ -112,4 +112,25 @@ class HeaderTest extends \PHPUnit_Framework_TestCase
         $header->setValue($value);
         $this->assertEquals('', $header->getValue());
     }
+
+    public function testHeaderCanRenderItselfAsAString()
+    {
+        $header = new Header('X-Foo-Bar', 'baz');
+        $string = (string) $header;
+        $this->assertEquals("X-Foo-Bar: baz\r\n", $string);
+    }
+
+    /**
+     * @runInSeparateProcess
+     */
+    public function testHeaderCanSendItself()
+    {
+        $this->markTestSkipped('Cannot reliably get headers sent in order to test');
+        $header = new Header('X-Foo-Bar', 'baz');
+        $header->send();
+        $this->assertTrue(headers_sent());
+        $headers = headers_list();
+        $expected = "X-Foo-Bar: baz";
+        $this->assertContains($expected, $headers, var_export($headers, 1));
+    }
 }
