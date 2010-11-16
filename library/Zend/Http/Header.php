@@ -110,4 +110,33 @@ class Header implements HttpHeader
     {
         return $this->value;
     }
+
+    /* behavior */
+
+    /**
+     * Send header
+     *
+     * Proxies to __toString() to format header appropriately (and trims it), 
+     * and uses value of replace flag as second argument for header().
+     * 
+     * @return void
+     */
+    public function send()
+    {
+        header(trim($this->__toString()), $this->replace());
+    }
+
+    /**
+     * Cast to string
+     *
+     * Returns in form of "TYPE: VALUE\r\n"
+     * 
+     * @return string
+     */
+    public function __toString()
+    {
+        $type  = $this->getType();
+        $value = $this->getValue();
+        return $type . ': ' . $value . "\r\n";
+    }
 }
