@@ -29,7 +29,7 @@ interface HttpHeaders extends Iterator, ArrayAccess, Countable
      * Also: requires overriding push, unshift to ensure values are of correct 
      * type.
      */
-    public function addHeader(Header $header);
+    public function addHeader(HttpHeader $header);
 
     /*
      * Retrieve named header; returns either a single header or an array of headers
@@ -67,7 +67,7 @@ interface HttpHeaders extends Iterator, ArrayAccess, Countable
     public function isInformational();
     public function isInvalid();
     public function isNotFound();
-    public function isNotModified(Request $request);
+    public function isNotModified(HttpRequest $request);
     public function isOk();
     public function isServerError();
     public function isSuccessful();
