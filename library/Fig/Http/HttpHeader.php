@@ -14,4 +14,8 @@ interface HttpHeader
     /* accessors */
     public function getType();
     public function getValue();
+
+    /* behaviors */
+    public function send();
+    public function __toString();
 }
