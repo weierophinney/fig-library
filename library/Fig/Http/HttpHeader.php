@@ -4,7 +4,7 @@ namespace Fig\Http;
 
 interface HttpHeader
 {
-    public function __construct($type, $value, $replace = false);
+    public function __construct($header, $value = null, $replace = false);
 
     /* mutators */
     public function setType($type);

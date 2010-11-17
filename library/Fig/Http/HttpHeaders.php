@@ -28,24 +28,42 @@ interface HttpHeaders extends Iterator, ArrayAccess, Countable
      *
      * Also: requires overriding push, unshift to ensure values are of correct 
      * type.
+     *
+     * Typically, $header will be of type HttpHeader, but this allows addHeader() 
+     * to operate as a factory. Suggestion is to allow HttpHeader objects, arrays,
+     * or all 3 arguments.
      */
-    public function addHeader(HttpHeader $header);
+    public function addHeader($header, $content = null, $replace = false);
+    public function setRedirect($url, $code = 302);
 
     /*
-     * Retrieve named header; returns either a single header or an array of headers
+     * Retrieve named header; returns either false or a queue of headers.
+     * has() tests for headers
      */
     public function get($type);
+    public function has($type);
 
     /* Sending headers, and testing sent status */
-    public function send();
-    public function sent(); // return boolean
+    public function send(); // actually send headers
+    public function sent(); // return boolean headers sent status
 
     /* Testing header status */
-    public function isRedirect();
+    public function hasVary();          // Vary header present?
+    public function isRedirect();       // 3XX status and/or Location header?
+    public function isClientError();    // 4XX status?
+    public function isEmpty();          // 201, 204, or 304 status?
+    public function isForbidden();      // 403 status?
+    public function isInformational();  // 1XX status?
+    public function isInvalid();        // <100 or >= 600 status?
+    public function isNotFound();       // 404 status?
+    public function isOk();             // 200 status?
+    public function isServerError();    // 5XX status?
+    public function isSuccessful();     // 2XX status?
 
-    /* Potential specialized mutators */
+    /* Those headers occurring below here need to be discussed */
+
+    /* Potential specialized mutators * /
     public function expire();
-    public function setRedirect($url, $code = 302);
     public function setClientTtl($seconds);
     public function setEtag($etag = null, $weak = false);
     public function setExpires($date = null);
@@ -57,24 +75,14 @@ interface HttpHeaders extends Iterator, ArrayAccess, Countable
     public function setTtl($seconds);
     public function setVary($headers, $replace = true);
 
-    /* Potential specialized conditionals */
-    public function hasVary();
+    /* Potential specialized conditionals * /
     public function isCacheable();
-    public function isClientError();
-    public function isEmpty();
-    public function isForbidden();
     public function isFresh();
-    public function isInformational();
-    public function isInvalid();
-    public function isNotFound();
     public function isNotModified(HttpRequest $request);
-    public function isOk();
-    public function isServerError();
-    public function isSuccessful();
     public function isValidateable();
     public function mustRevalidate();
 
-    /* Potential specialized accessors */
+    /* Potential specialized accessors * /
     public function getAge() ;
     public function getEtag();
     public function getExpires();
@@ -82,4 +90,5 @@ interface HttpHeaders extends Iterator, ArrayAccess, Countable
     public function getMaxAge();
     public function getTtl();
     public function getVary();
+     */
 }
