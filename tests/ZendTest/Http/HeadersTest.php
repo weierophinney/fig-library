@@ -126,6 +126,30 @@ class HeadersTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($header, $test);
     }
 
+    public function testCanAddHeadersViaScalarArguments()
+    {
+        $this->headers->addHeader('X-Foo-Bar', 'baz', true);
+        $this->assertTrue($this->headers->has('X-Foo-Bar'));
+        $headers = $this->headers->get('X-Foo-Bar');
+        foreach ($headers as $header) {}
+        $this->assertEquals('baz', $header->getValue());
+        $this->assertTrue($header->replace());
+    }
+
+    public function testCanAddHeadersUsingArrays()
+    {
+        $this->headers->addHeader(array(
+            'type'    => 'X-Foo-Bar',
+            'value'   => 'baz',
+            'replace' => true,
+        ));
+        $this->assertTrue($this->headers->has('X-Foo-Bar'));
+        $headers = $this->headers->get('X-Foo-Bar');
+        foreach ($headers as $header) {}
+        $this->assertEquals('baz', $header->getValue());
+        $this->assertTrue($header->replace());
+    }
+
     public function testPushingNonHeadersOntoObjectRaisesException()
     {
         $this->setExpectedException('Zend\Http\Exception\InvalidArgumentException');

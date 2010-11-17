@@ -157,8 +157,16 @@ class Headers extends SplQueue implements HttpHeaders
      * @param  HttpHeader $header 
      * @return Headers
      */
-    public function addHeader(HttpHeader $header)
+    public function addHeader($header, $content = null, $replace = false)
     {
+        if (!$header instanceof HttpHeader) {
+            if (is_array($header)) {
+                $header = new Header($header);
+            } else {
+                $header = new Header($header, $content, $replace);
+            }
+        }
+
         $this->push($header);
         return $this;
     }
@@ -221,11 +229,21 @@ class Headers extends SplQueue implements HttpHeaders
      */
     public function get($type)
     {
-        $type = strtolower($type);
-        if (array_key_exists($type, $this->headers)) {
-            return $this->headers[$type];
+        if ($this->has($type)) {
+            return $this->headers[strtolower($type)];
         }
         return false;
+    }
+
+    /**
+     * Test for existence of a type of header
+     * 
+     * @param  string $type 
+     * @return bool
+     */
+    public function has($type)
+    {
+        return array_key_exists(strtolower($type), $this->headers);
     }
 
     /**

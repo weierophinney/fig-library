@@ -23,9 +23,16 @@ class Header implements HttpHeader
      * @param  bool $replace 
      * @return void
      */
-    public function __construct($type, $value, $replace = false)
+    public function __construct($header, $value = null, $replace = false)
     {
-        $this->setType($type);
+        if (is_array($header) || $header instanceof \ArrayObject) {
+            $type    = $header['type']   ?: false;
+            $value   = $header['value'] ?: '';
+            $replace = (bool) ($header['replace'] ?: false);
+            $header  = $type;
+        }
+
+        $this->setType($header);
         $this->setValue($value);
         $this->replace($replace);
     }
