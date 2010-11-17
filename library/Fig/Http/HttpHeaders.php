@@ -76,8 +76,6 @@ interface HttpHeaders extends Iterator, ArrayAccess, Countable
 
     /* Potential specialized accessors */
     public function getAge() ;
-    public function getContent();
-    public function getDate();
     public function getEtag();
     public function getExpires();
     public function getLastModified();
