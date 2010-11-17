@@ -125,11 +125,13 @@ class HeaderTest extends \PHPUnit_Framework_TestCase
      */
     public function testHeaderCanSendItself()
     {
-        $this->markTestSkipped('Cannot reliably get headers sent in order to test');
+        if (!function_exists('xdebug_get_headers')) {
+            $this->markTestSkipped('Cannot reliably get headers sent in order to test');
+        }
         $header = new Header('X-Foo-Bar', 'baz');
         $header->send();
-        $this->assertTrue(headers_sent());
-        $headers = headers_list();
+
+        $headers  = xdebug_get_headers();
         $expected = "X-Foo-Bar: baz";
         $this->assertContains($expected, $headers, var_export($headers, 1));
     }
