@@ -2,7 +2,7 @@
 
 namespace Fig\Http;
 
-interface Response
+interface HttpResponse
 {
     public function __construct($content = '', $status = 200, $headers = null);
 
