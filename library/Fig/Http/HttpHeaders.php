@@ -19,9 +19,6 @@ interface HttpHeaders extends Iterator, ArrayAccess, Countable
      */
     public function getProtocolVersion(); // HTTP 1.0, 1.1
     public function setProtocolVersion($version);
-    public function getStatusCode(); // 200, 301, etc.
-    public function getStatusMessage(); 
-    public function setStatusCode($code, $text = null);
 
     /* 
      * Adding headers 
@@ -34,7 +31,17 @@ interface HttpHeaders extends Iterator, ArrayAccess, Countable
      * or all 3 arguments.
      */
     public function addHeader($header, $content = null, $replace = false);
-    public function setRedirect($url, $code = 302);
+
+    /**
+     * Allow adding multiple headers at once
+     *
+     * Implementation can vary -- could be key/value pairs, array of HttpHeader 
+     * objects, array of arrays, etc -- or combination thereof.
+     *
+     * @param mixed $headers
+     * @return void
+     */
+    public function addHeaders($headers);
 
     /*
      * Retrieve named header; returns either false or a queue of headers.
@@ -43,52 +50,61 @@ interface HttpHeaders extends Iterator, ArrayAccess, Countable
     public function get($type);
     public function has($type);
 
-    /* Sending headers, and testing sent status */
-    public function send(); // actually send headers
-    public function sent(); // return boolean headers sent status
+    /**
+     * Representation of headers as string
+     */
+    public function __toString();
 
-    /* Testing header status */
-    public function hasVary();          // Vary header present?
-    public function isRedirect();       // 3XX status and/or Location header?
-    public function isClientError();    // 4XX status?
-    public function isEmpty();          // 201, 204, or 304 status?
-    public function isForbidden();      // 403 status?
-    public function isInformational();  // 1XX status?
-    public function isInvalid();        // <100 or >= 600 status?
-    public function isNotFound();       // 404 status?
-    public function isOk();             // 200 status?
-    public function isServerError();    // 5XX status?
-    public function isSuccessful();     // 2XX status?
+    /**
+     * Create headers from string (request/response document)
+     *
+     * @param mixed $string 
+     * @return void
+     */
+    public function fromString($string);
 
-    /* Those headers occurring below here need to be discussed */
+    /* Methods occurring below here need to be discussed */
 
     /* Potential specialized mutators * /
-    public function expire();
-    public function setClientTtl($seconds);
-    public function setEtag($etag = null, $weak = false);
-    public function setExpires($date = null);
-    public function setLastModified($date = null);
-    public function setMaxAge($value);
-    public function setNotModified();
-    public function setPrivate($value);
-    public function setSharedMaxAge($value);
-    public function setTtl($seconds);
-    public function setVary($headers, $replace = true);
-
-    /* Potential specialized conditionals * /
-    public function isCacheable();
-    public function isFresh();
-    public function isNotModified(HttpRequest $request);
-    public function isValidateable();
-    public function mustRevalidate();
+    public function setAccept($string);
+    public function setAcceptCharset($string);
+    public function setAcceptEncoding($string);
+    public function setAcceptLanguage($string);
+    public function setAuthorization($credentials);
+    public function setExpect($string);
+    public function setFrom($string);
+    public function setHost($string);
+    public function setIfMatch($string);
+    public function setIfModifiedSince($string);
+    public function setIfNoneMatch($string);
+    public function setIfRange($string);
+    public function setIfUnmodifiedSince($string);
+    public function setMaxForwards($string);
+    public function setProxyAuthorization($string);
+    public function setRange($string);
+    public function setReferer($string);
+    public function setTE($string);
+    public function setUserAgent($string);
 
     /* Potential specialized accessors * /
-    public function getAge() ;
-    public function getEtag();
-    public function getExpires();
-    public function getLastModified();
-    public function getMaxAge();
-    public function getTtl();
-    public function getVary();
+    public function getAccept();
+    public function getAcceptCharset();
+    public function getAcceptEncoding();
+    public function getAcceptLanguage();
+    public function getAuthorization();
+    public function getExpect();
+    public function getFrom();
+    public function getHost();
+    public function getIfMatch();
+    public function getIfModifiedSince();
+    public function getIfNoneMatch();
+    public function getIfRange();
+    public function getIfUnmodifiedSince();
+    public function getMaxForwards();
+    public function getProxyAuthorization();
+    public function getRange();
+    public function getReferer();
+    public function getTE();
+    public function getUserAgent();
      */
 }
