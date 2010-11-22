@@ -1,0 +1,9 @@
+PUT /baz HTTP/1.0
+Host: foo.bar
+Content-Type: text/html
+X-Baz-Bat: foobar
+X-Foo-Bar: bar;
+ baz; bat;
+X-Baz-Bat: bazbat
+
+This is the request body.
