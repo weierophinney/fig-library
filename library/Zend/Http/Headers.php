@@ -18,7 +18,7 @@ abstract class Headers extends SplQueue implements HttpHeaders
      * Constants containing patterns for parsing HTTP headers from a string
      */
     const PATTERN_HEADER_DELIM       = "/\r\n/";
-    const PATTERN_FIELD_NAME         = "(?P<field>[^()><@,;:\"\\/\[\]?=}{ \t]+)";
+    const PATTERN_TOKEN              = "(?P<token>[^()><@,;:\"\\/\[\]?=}{ \t]+)";
     const PATTERN_FIELD_CONTENT      = "(?P<content>.*)";
     const PATTERN_FIELD_CONTINUATION = '/^\s+(?P<content>.*)$/';
     /**@-*/
@@ -236,8 +236,8 @@ abstract class Headers extends SplQueue implements HttpHeaders
         $headers = array();
         $type    = false;
         foreach (preg_split(self::PATTERN_HEADER_DELIM, $string) as $line) {
-            if (preg_match('/^' . self::PATTERN_FIELD_NAME . ':' . self::PATTERN_FIELD_CONTENT . '$/', $line, $matches)) {
-                $type    = $matches['field'];
+            if (preg_match('/^' . self::PATTERN_TOKEN . ':' . self::PATTERN_FIELD_CONTENT . '$/', $line, $matches)) {
+                $type    = $matches['token'];
                 $content = trim($matches['content']);
                 if (isset($headers[$type]) && is_string($headers[$type])) {
                     $headers[$type] = array($headers[$type], $content);
