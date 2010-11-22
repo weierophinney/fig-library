@@ -66,5 +66,5 @@ interface HttpRequest
     public function __toString();
 
     /* Create object from "document" */
-    public function fromString();
+    public function fromString($string);
 }
