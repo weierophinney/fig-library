@@ -50,9 +50,15 @@ class Header implements HttpHeader
         if (!is_scalar($type)) {
             throw new Exception\InvalidArgumentException('Header type must be scalar');
         }
-        if (!preg_match('/^[a-z][a-z0-9-]*$/i', (string) $type)) {
+
+        // Pre-filter to normalize valid characters
+        $type = $this->normalizeHeaderType((string) $type);
+
+        // Validate what we have
+        if (!preg_match('/^[a-z][a-z0-9-]*$/i', $type)) {
             throw new Exception\InvalidArgumentException('Header type must start with a letter, and consist of only letters, numbers, and dashes');
         }
+
         $this->type = $type;
         return $this;
     }
@@ -145,5 +151,18 @@ class Header implements HttpHeader
         $type  = $this->getType();
         $value = $this->getValue();
         return $type . ': ' . $value . "\r\n";
+    }
+
+    /**
+     * Normalize the header string
+     * 
+     * @param  string $string 
+     * @return string
+     */
+    protected function normalizeHeaderType($string)
+    {
+        $type = str_replace(array('_', '-'), ' ', $string);
+        $type = ucwords($type);
+        return str_replace(' ', '-', $type);
     }
 }

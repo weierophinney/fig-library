@@ -67,4 +67,20 @@ class Parameters extends ArrayObject implements HttpParameters
     {
         return http_build_query($this);
     }
+
+    /**
+     * Retrieve by key
+     *
+     * Returns null if the key does not exist.
+     * 
+     * @param  string $name 
+     * @return mixed
+     */
+    public function offsetGet($name)
+    {
+        if (isset($this[$name])) {
+            return parent::offsetGet($name);
+        }
+        return null;
+    }
 }
