@@ -12,6 +12,7 @@ interface HttpRequest
     public function setServer(Parameters $server);
     public function setEnv(Parameters $env);
     public function setHeaders(HttpRequestHeaders $headers);
+    public function setRawBody($string);
 
     /* accessors for various superglobals */
     public function query($name = null, $default = null);
@@ -21,6 +22,7 @@ interface HttpRequest
     public function server($name = null, $default = null);
     public function env($name = null, $default = null);
     public function headers($name = null);
+    public function body();
 
     /* URI decomposition */
     public function getRequestUri();
