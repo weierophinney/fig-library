@@ -2,7 +2,7 @@
 
 namespace Fig\Http;
 
-interface Request
+interface HttpRequest
 {
     /* mutators for various superglobals */
     public function setQuery(Parameters $query);
