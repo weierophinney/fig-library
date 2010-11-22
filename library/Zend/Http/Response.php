@@ -3,24 +3,30 @@
 namespace Zend\Http;
 
 use Fig\Http\HttpResponse,
-    Fig\Http\HttpHeaders;
+    Fig\Http\HttpResponseHeaders;
 
 class Response implements HttpResponse
 {
     protected $content;
     protected $headers;
 
+    /**
+     * Constructor
+     * 
+     * @param  string $content 
+     * @param  int $status 
+     * @param  null|array|HttpResponseHeaders $headers 
+     * @return void
+     */
     public function __construct($content = '', $status = 200, $headers = null)
     {
         $this->setContent($content);
 
-        if ($headers instanceof HttpHeaders) {
+        if ($headers instanceof HttpResponseHeaders) {
             $this->setHeaders($headers);
         } elseif (is_array($headers)) {
             $httpHeaders = $this->getHeaders();
-            foreach ($headers as $type => $value) {
-                $httpHeaders->addHeader($type, $value);
-            }
+            $httpHeaders->addHeaders($headers);
             $headers = $httpHeaders;
         } else {
             $headers = $this->getHeaders();
@@ -28,35 +34,66 @@ class Response implements HttpResponse
         $headers->setStatusCode($status);
     }
 
-
-    /* Create text representation of response, including protocol, status and headers */
+    /**
+     * Create string representation of response
+     * 
+     * @return string
+     */
     public function __toString()
     {
-        $headers  = $this->getHeaders();
-        $response = sprintf(
-            'HTTP/%s %d %s',
-            $headers->getProtocolVersion(),
-            $headers->getStatusCode(),
-            $headers->getStatusMessage()
-        );
-        $response .= "\r\n";
-        foreach ($headers as $header) {
-            $response .= (string) $header;
-        }
-        $response .= "\r\n" . $this->getContent();
-        return $response;
+        return $this->getHeaders() . "\r\n" . $this->getContent();
     }
 
+    /**
+     * Populate object from string
+     * 
+     * @param  string $string 
+     * @return Response
+     */
+    public function fromString($string)
+    {
+        $segments = preg_split("/\r\n\r\n/", $string, 2);
+
+        // Populate headers
+        $this->getHeaders()->fromString($segments[0]);
+
+        // Populate content, if any
+        if (2 === count($segments)) {
+            $this->setContent($segments[1]);
+        } else {
+            $this->setContent('');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Send headers only
+     * 
+     * @return void
+     */
     public function sendHeaders()
     {
         $this->getHeaders()->send();
     }
 
+    /**
+     * Send content only
+     *
+     * Has side effect of sending output
+     * 
+     * @return void
+     */
     public function sendContent()
     {
         echo $this->getContent();
     }
 
+    /**
+     * Send headers and content
+     * 
+     * @return void
+     */
     public function send()
     {
         $this->sendHeaders();
@@ -64,26 +101,49 @@ class Response implements HttpResponse
     }
 
     /* mutators and accessors */
+
+    /**
+     * Get response content
+     * 
+     * @return string
+     */
     public function getContent()
     {
         return $this->content;
     }
 
+    /**
+     * Set response content
+     * 
+     * @param  string $content 
+     * @return Response
+     */
     public function setContent($content)
     {
         $this->content = (string) $content;
         return $this;
     }
 
+    /**
+     * Get response headers
+     * 
+     * @return ResponseHeaders
+     */
     public function getHeaders()
     {
         if (null === $this->headers) {
-            $this->setHeaders(new Headers());
+            $this->setHeaders(new ResponseHeaders());
         }
         return $this->headers;
     }
 
-    public function setHeaders(HttpHeaders $headers)
+    /**
+     * Set response headers
+     * 
+     * @param  HttpResponseHeaders $headers 
+     * @return Response
+     */
+    public function setHeaders(HttpResponseHeaders $headers)
     {
         $this->headers = $headers;
         return $this;

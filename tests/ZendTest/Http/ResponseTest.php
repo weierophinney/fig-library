@@ -3,7 +3,7 @@
 namespace ZendTest\Http;
 
 use Zend\Http\Response,
-    Zend\Http\Headers;
+    Zend\Http\ResponseHeaders as Headers;
 
 class ResponseTest extends \PHPUnit_Framework_TestCase
 {
@@ -97,5 +97,20 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
 
         $this->assertContains("X-Foo-Bar: baz\r\n", $test);
         $this->assertContains("\r\n\r\nfoo", $test);
+    }
+
+    public function testCanParseResponseFromString()
+    {
+        $response = file_get_contents(__DIR__ . '/_files/response_headers.txt');
+        $this->response->fromString($response);
+        $this->assertEquals('This is the response body.', trim($this->response->getContent()));
+        $headers = $this->response->getHeaders();
+        $this->assertEquals(302, $headers->getStatusCode());
+        $this->assertEquals('Temporarily Moved', $headers->getStatusMessage());
+        $this->assertTrue($headers->has('Content-Type'));
+        $this->assertTrue($headers->has('X-Baz-Bat'));
+        $this->assertTrue($headers->has('X-Foo-Bar'));
+        $this->assertTrue($headers->has('X-Baz-Bat'));
+        $this->assertTrue($headers->has('Location'));
     }
 }
