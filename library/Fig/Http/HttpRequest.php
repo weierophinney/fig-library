@@ -11,7 +11,7 @@ interface Request
     public function setFiles(Parameters $files); // Maybe separate component for Files?
     public function setServer(Parameters $server);
     public function setEnv(Parameters $env);
-    public function setHeaders(HttpHeaders $headers);
+    public function setHeaders(HttpRequestHeaders $headers);
 
     /* accessors for various superglobals */
     public function query($name = null);
