@@ -2,7 +2,7 @@
 
 namespace Fig\Http;
 
-interface Request
+interface HttpRequest
 {
     /* mutators for various superglobals */
     public function setQuery(Parameters $query);
@@ -11,7 +11,8 @@ interface Request
     public function setFiles(Parameters $files); // Maybe separate component for Files?
     public function setServer(Parameters $server);
     public function setEnv(Parameters $env);
-    public function setHeaders(HttpHeaders $headers);
+    public function setHeaders(HttpRequestHeaders $headers);
+    public function setRawBody($string);
 
     /* accessors for various superglobals */
     public function query($name = null);
@@ -21,6 +22,7 @@ interface Request
     public function server($name = null);
     public function env($name = null);
     public function headers($name = null);
+    public function body();
 
     /* URI decomposition */
     public function getRequestUri();
@@ -64,5 +66,5 @@ interface Request
     public function __toString();
 
     /* Create object from "document" */
-    public function fromString();
+    public function fromString($string);
 }
