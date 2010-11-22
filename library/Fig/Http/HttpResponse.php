@@ -17,5 +17,5 @@ interface HttpResponse
     public function getContent();
     public function setContent($content);
     public function getHeaders();
-    public function setHeaders(HttpHeaders $headers);
+    public function setHeaders(HttpResponseHeaders $headers);
 }
