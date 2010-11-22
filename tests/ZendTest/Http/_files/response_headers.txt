@@ -1,0 +1,9 @@
+HTTP/1.1 302 Temporarily Moved
+Content-Type: text/html
+X-Baz-Bat: foobar
+X-Foo-Bar: bar;
+ baz; bat;
+Location: http://foo.local/bar
+X-Baz-Bat: bazbat
+
+This is the response body.

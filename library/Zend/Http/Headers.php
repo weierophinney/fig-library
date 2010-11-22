@@ -7,57 +7,23 @@ use Fig\Http\HttpHeader,
     Fig\Http\HttpRequest,
     SplQueue;
 
-class Headers extends SplQueue implements HttpHeaders
+/**
+ * Basic HTTP headers collection functionality
+ *
+ * Handles aggregation of headers and HTTP protocol version.
+ */
+abstract class Headers extends SplQueue implements HttpHeaders
 {
-    protected $allowedProtocolVersions = '/^\d+\.\d+$/';
-    protected $allowedStatusCodes = array(
-        100,
-        101,
-        200,
-        201,
-        202,
-        203,
-        204,
-        205,
-        206,
-        300,
-        301,
-        302,
-        303,
-        304,
-        305,
-        306,
-        307,
-        400,
-        401,
-        402,
-        403,
-        404,
-        405,
-        406,
-        407,
-        408,
-        409,
-        410,
-        411,
-        412,
-        413,
-        414,
-        415,
-        416,
-        417,
-        500,
-        501,
-        502,
-        503,
-        504,
-        505,
-    );
-
-    /**
-     * @var array Status codes indicating empty response
+    /**@+
+     * Constants containing patterns for parsing HTTP headers from a string
      */
-    protected $emptyCodes = array(201, 204, 304);
+    const PATTERN_HEADER_DELIM       = "/\r\n/";
+    const PATTERN_FIELD_NAME         = "(?P<field>[^()><@,;:\"\\/\[\]?=}{ \t]+)";
+    const PATTERN_FIELD_CONTENT      = "(?P<content>.*)";
+    const PATTERN_FIELD_CONTINUATION = '/^\s+(?P<content>.*)$/';
+    /**@-*/
+
+    protected $allowedProtocolVersions = '/^\d+\.\d+$/';
 
     /**
      * Set of headers sorted by type
@@ -71,8 +37,6 @@ class Headers extends SplQueue implements HttpHeaders
     protected $isSent = false;
 
     protected $protocolVersion = '1.1';
-    protected $statusCode      = 200;
-    protected $statusMessage   = 'OK';
 
     /**
      * Retrieve HTTP protocol version
@@ -104,54 +68,6 @@ class Headers extends SplQueue implements HttpHeaders
     }
 
     /**
-     * Retrieve HTTP status code
-     * 
-     * @return int
-     */
-    public function getStatusCode()
-    {
-        return $this->statusCode;
-    }
-
-    /**
-     * Get HTTP status message
-     * 
-     * @return string
-     */
-    public function getStatusMessage()
-    {
-        return $this->statusMessage;
-    }
-
-    /**
-     * Set HTTP status code and (optionally) message
-     * 
-     * @param  string|float $code 
-     * @param  null|string $text 
-     * @return Headers
-     */
-    public function setStatusCode($code, $text = null)
-    {
-        if (!is_numeric($code) || !in_array($code, $this->allowedStatusCodes)) {
-            $code = is_scalar($code) ? $code : gettype($code);
-            throw new Exception\InvalidArgumentException(sprintf(
-                'Invalid status code provided: "%s"',
-                $code
-            ));
-        }
-        $this->statusCode = $code;
-        if (!is_string($text)) {
-            // Not a string? Set it to an empty string
-            $this->statusMessage = '';
-        } else {
-            // Strip any lineending characters before storing
-            $text = preg_replace("/(\r|\n)/", '', $text);
-            $this->statusMessage = $text;
-        }
-        return $this;
-    }
-
-    /**
      * Add a header onto the queue
      * 
      * @param  HttpHeader $header 
@@ -169,6 +85,44 @@ class Headers extends SplQueue implements HttpHeaders
 
         $this->push($header);
         return $this;
+    }
+
+    /**
+     * Add many headers at once
+     *
+     * Expects an array (or Traversable object) of type/value pairs.
+     * 
+     * @param  array|Traversable $headers 
+     */
+    public function addHeaders($headers)
+    {
+        if (!is_array($headers) && !$headers instanceof \Traversable) {
+            throw new Exception\InvalidArgumentException(sprintf(
+                'Expected array or Traversable; received "%s"',
+                (is_object($headers) ? get_class($headers) : gettype($headers))
+            ));
+        }
+
+        foreach ($headers as $type => $content) {
+            $this->addHeader($type, $content);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Clear all headers
+     *
+     * Removes all headers from queue
+     * 
+     * @return void
+     */
+    public function clearHeaders()
+    {
+        while (count($this)) {
+            $this->dequeue();
+        }
+        $this->headers = array();
     }
 
     /**
@@ -247,283 +201,76 @@ class Headers extends SplQueue implements HttpHeaders
     }
 
     /**
-     * Send headers
+     * Render all headers at once
      *
-     * Builds and sends a status header, based on protocol version, status code
-     * and status message, and loops through and sends each header aggregated.
+     * This method handles the normal iteration of headers; it is up to the 
+     * concrete classes to prepend with the appropriate status/request line.
      * 
-     * @return void
+     * @return string
      */
-    public function send()
+    public function __toString()
     {
-        // Build and send status header
-        $status = sprintf(
-            'HTTP/%s %d %s',
-            $this->getProtocolVersion(),
-            $this->getStatusCode(),
-            $this->getStatusMessage()
-        );
-        header($status);
-
-        // Now loop through all headers and send
+        $content = '';
         foreach ($this as $header) {
-            $header->send();
+            $content .= (string) $header;
         }
-        $this->isSent = true;
+        return $content;
     }
 
     /**
-     * Are headers sent?
+     * Populates headers from string representation
      *
-     * Returns true for either of the following situations:
+     * Parses a string for headers, and aggregates them, in order, in the 
+     * current instance.
      *
-     * - send() has been called, and the isSent flag set to true
-     * - headers_sent() returns true
-     * 
-     * @return bool
-     */
-    public function sent()
-    {
-        return ($this->isSent || headers_sent());
-    }
-
-    /**
-     * Is this a redirect header?
+     * On Request/Response variants, this should look for the first line 
+     * matching the appropriate regex, and then forward the remainder of the 
+     * string on to parent::fromString().
      *
-     * Returns true if we have a 3xx status code, or if a Location header is
-     * present.
-     * 
-     * @return bool
-     */
-    public function isRedirect()
-    {
-        $code    = $this->getStatusCode();
-        $headers = $this->get('Location');
-        return (((300 <= $code) && (400 > $code)) 
-                || ($headers && count($headers)));
-    }
-
-    /* Potential specialized mutators */
-    public function expire()
-    {
-    }
-
-    /**
-     * Add a redirect header
-     *
-     * Creates and appends a redirect header. If a non-empty status code is 
-     * given, it is passed to {@link setStatusCode()}.
-     * 
-     * @param  string $url 
-     * @param  null|int $code 
+     * @param  string $string 
      * @return Headers
      */
-    public function setRedirect($url, $code = 302)
+    public function fromString($string)
     {
-        $this->addHeader(new Header('Location', $url, true));
-        if (!empty($code)) {
-            $this->setStatusCode($code);
+        $this->clearHeaders();
+        $headers = array();
+        $type    = false;
+        foreach (preg_split(self::PATTERN_HEADER_DELIM, $string) as $line) {
+            if (preg_match('/^' . self::PATTERN_FIELD_NAME . ':' . self::PATTERN_FIELD_CONTENT . '$/', $line, $matches)) {
+                $type    = $matches['field'];
+                $content = trim($matches['content']);
+                if (isset($headers[$type]) && is_string($headers[$type])) {
+                    $headers[$type] = array($headers[$type], $content);
+                } elseif (isset($headers[$type]) && is_array($headers[$type])) {
+                    $headers[$type][] = $content;
+                } else {
+                    $headers[$type] = $content;
+                }
+            } elseif (preg_match(self::PATTERN_FIELD_CONTINUATION, $line, $matches)) {
+                if ($type) {
+                    $headers[$type] .= trim($matches['content']);
+                }
+            } elseif (preg_match('/^\s*$/', $line)) {
+                // empty line indicates end of headers
+                break;
+            } else {
+                // Line does not match header format!
+                throw new Exception\RuntimeException(sprintf(
+                    'Line "%s"does not match header format!',
+                    $line
+                ));
+            }
         }
+        foreach ($headers as $type => $value) {
+            if (is_array($value)) {
+                foreach ($value as $v) {
+                    $this->addHeader($type, $v);
+                }
+            } else {
+                $this->addHeader($type, $value);
+            }
+        }
+
         return $this;
-    }
-
-    public function setClientTtl($seconds)
-    {
-    }
-
-    public function setEtag($etag = null, $weak = false)
-    {
-    }
-
-    public function setExpires($date = null)
-    {
-    }
-
-    public function setLastModified($date = null)
-    {
-    }
-
-    public function setMaxAge($value)
-    {
-    }
-
-    public function setNotModified()
-    {
-    }
-
-    public function setPrivate($value)
-    {
-    }
-
-    public function setSharedMaxAge($value)
-    {
-    }
-
-    public function setTtl($seconds)
-    {
-    }
-
-    public function setVary($headers, $replace = true)
-    {
-    }
-
-
-    /* Potential specialized conditionals */
-
-    /**
-     * Do we have a Vary header?
-     * 
-     * @return bool
-     */
-    public function hasVary()
-    {
-        $headers = $this->get('Vary');
-        return ($headers instanceof SplQueue);
-    }
-
-    public function isCacheable()
-    {
-    }
-
-    /**
-     * Does the status code indicate a client error?
-     * 
-     * @return bool
-     */
-    public function isClientError()
-    {
-        $code = $this->getStatusCode();
-        return ($code < 500 && $code >= 400);
-    }
-
-    /**
-     * Does the status code indicate an empty response?
-     * 
-     * @return bool
-     */
-    public function isEmpty()
-    {
-        return in_array($this->getStatusCode(), $this->emptyCodes);
-    }
-
-    /**
-     * Is the request forbidden due to ACLs?
-     * 
-     * @return bool
-     */
-    public function isForbidden()
-    {
-        return (403 == $this->getStatusCode());
-    }
-
-    public function isFresh()
-    {
-    }
-
-    /**
-     * Is the current status "informational"?
-     * 
-     * @return bool
-     */
-    public function isInformational()
-    {
-        $code = $this->getStatusCode();
-        return ($code >= 100 && $code < 200);
-    }
-
-    /**
-     * Is the status code invalid?
-     *
-     * Because we validate status codes, this can never return true.
-     * 
-     * @return false
-     */
-    public function isInvalid()
-    {
-        return false;
-    }
-
-    /**
-     * Does the status code indicate the resource is not found?
-     * 
-     * @return bool
-     */
-    public function isNotFound()
-    {
-        return (404 === $this->getStatusCode());
-    }
-
-    public function isNotModified(HttpRequest $request)
-    {
-    }
-
-    /**
-     * Do we have a normal, OK response?
-     * 
-     * @return bool
-     */
-    public function isOk()
-    {
-        return (200 === $this->getStatusCode());
-    }
-
-    /**
-     * Does the status code reflect a server error?
-     * 
-     * @return bool
-     */
-    public function isServerError()
-    {
-        $code = $this->getStatusCode();
-        return (500 <= $code && 600 > $code);
-    }
-
-    /**
-     * Was the response successful?
-     * 
-     * @return bool
-     */
-    public function isSuccessful()
-    {
-        $code = $this->getStatusCode();
-        return (200 <= $code && 300 > $code);
-    }
-
-    public function isValidateable()
-    {
-    }
-
-    public function mustRevalidate()
-    {
-    }
-
-
-    /* Potential specialized accessors */
-    public function getAge() 
-    {
-    }
-
-    public function getEtag()
-    {
-    }
-
-    public function getExpires()
-    {
-    }
-
-    public function getLastModified()
-    {
-    }
-
-    public function getMaxAge()
-    {
-    }
-
-    public function getTtl()
-    {
-    }
-
-    public function getVary()
-    {
     }
 }

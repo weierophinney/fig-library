@@ -20,7 +20,7 @@ interface HttpHeaders extends Iterator, ArrayAccess, Countable
     public function getProtocolVersion(); // HTTP 1.0, 1.1
     public function setProtocolVersion($version);
 
-    /* 
+    /**
      * Adding headers 
      *
      * Also: requires overriding push, unshift to ensure values are of correct 
@@ -29,6 +29,11 @@ interface HttpHeaders extends Iterator, ArrayAccess, Countable
      * Typically, $header will be of type HttpHeader, but this allows addHeader() 
      * to operate as a factory. Suggestion is to allow HttpHeader objects, arrays,
      * or all 3 arguments.
+     *
+     * @param string|array|HttpHeader $header
+     * @param null|string $content
+     * @param bool $replace
+     * @return HttpHeaders
      */
     public function addHeader($header, $content = null, $replace = false);
 
@@ -38,8 +43,8 @@ interface HttpHeaders extends Iterator, ArrayAccess, Countable
      * Implementation can vary -- could be key/value pairs, array of HttpHeader 
      * objects, array of arrays, etc -- or combination thereof.
      *
-     * @param mixed $headers
-     * @return void
+     * @param  mixed $headers
+     * @return HttpHeaders
      */
     public function addHeaders($headers);
 
@@ -56,55 +61,13 @@ interface HttpHeaders extends Iterator, ArrayAccess, Countable
     public function __toString();
 
     /**
-     * Create headers from string (request/response document)
+     * Populate object and headers from string
      *
-     * @param mixed $string 
-     * @return void
+     * Accepts text representing all headers, and splits it into either a 
+     * status or request line and all provided headers.
+     * 
+     * @param  string $string 
+     * @return HttpHeaders
      */
     public function fromString($string);
-
-    /* Methods occurring below here need to be discussed */
-
-    /* Potential specialized mutators * /
-    public function setAccept($string);
-    public function setAcceptCharset($string);
-    public function setAcceptEncoding($string);
-    public function setAcceptLanguage($string);
-    public function setAuthorization($credentials);
-    public function setExpect($string);
-    public function setFrom($string);
-    public function setHost($string);
-    public function setIfMatch($string);
-    public function setIfModifiedSince($string);
-    public function setIfNoneMatch($string);
-    public function setIfRange($string);
-    public function setIfUnmodifiedSince($string);
-    public function setMaxForwards($string);
-    public function setProxyAuthorization($string);
-    public function setRange($string);
-    public function setReferer($string);
-    public function setTE($string);
-    public function setUserAgent($string);
-
-    /* Potential specialized accessors * /
-    public function getAccept();
-    public function getAcceptCharset();
-    public function getAcceptEncoding();
-    public function getAcceptLanguage();
-    public function getAuthorization();
-    public function getExpect();
-    public function getFrom();
-    public function getHost();
-    public function getIfMatch();
-    public function getIfModifiedSince();
-    public function getIfNoneMatch();
-    public function getIfRange();
-    public function getIfUnmodifiedSince();
-    public function getMaxForwards();
-    public function getProxyAuthorization();
-    public function getRange();
-    public function getReferer();
-    public function getTE();
-    public function getUserAgent();
-     */
 }

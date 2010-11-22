@@ -2,14 +2,17 @@
 
 namespace ZendTest\Http;
 
-use Zend\Http\Headers,
+use Zend\Http\ResponseHeaders,
     Zend\Http\Header;
 
-class HeadersTest extends \PHPUnit_Framework_TestCase
+/**
+ * Tests both ResponseHeaders as well as base Headers functionality
+ */
+class ResponseHeadersTest extends \PHPUnit_Framework_TestCase
 {
     public function setUp()
     {
-        $this->headers = new Headers();
+        $this->headers = new ResponseHeaders();
     }
 
     public function testProtocolVersionIs1Dot1ByDefault()
@@ -586,5 +589,57 @@ class HeadersTest extends \PHPUnit_Framework_TestCase
     {
         $this->headers->setStatusCode($code);
         $this->assertFalse($this->headers->isSuccessful());
+    }
+
+    public function testCanRenderObjectAsString()
+    {
+        $this->headers->setStatusCode(302, 'Moved Temporarily');
+        $this->headers->addHeaders(array(
+            'Location'     => 'http://foo.local/bar',
+            'X-Emitted-By' => __CLASS__,
+        ));
+        $test = (string) $this->headers;
+        $expected = "HTTP/1.1 302 Moved Temporarily\r\nLocation: http://foo.local/bar\r\nX-Emitted-By: " . __CLASS__ . "\r\n";
+        $this->assertEquals($expected, $test);
+    }
+
+    public function testCanParseHeadersFromString()
+    {
+        $response = file_get_contents(__DIR__ . '/_files/response_headers.txt');
+        $this->headers->fromString($response);
+        $this->assertEquals(302, $this->headers->getStatusCode());
+        $this->assertEquals('Temporarily Moved', $this->headers->getStatusMessage());
+        $this->assertTrue($this->headers->has('Content-Type'));
+        $this->assertEquals('text/html', $this->headers->get('Content-Type')->top()->getValue());
+        $this->assertTrue($this->headers->has('Location'));
+        $this->assertEquals('http://foo.local/bar', $this->headers->get('Location')->top()->getValue());
+        $this->assertTrue($this->headers->has('X-Foo-Bar'));
+        $this->assertRegexp('/^bar;\s*baz; bat;\s*$/', $this->headers->get('X-Foo-Bar')->top()->getValue());
+        $this->assertTrue($this->headers->has('X-Baz-Bat'));
+        $headers = $this->headers->get('X-Baz-Bat');
+        $this->assertEquals(2, count($headers));
+        $expected = array('foobar', 'bazbat');
+        $test     = array();
+        foreach ($headers as $header) {
+            $test[] = $header->getValue();
+        }
+        $this->assertEquals($expected, $test);
+        $this->assertFalse($this->headers->has('This'));
+    }
+
+    public function testParsingHeadersFromStringResetsStateOfCollection()
+    {
+        $this->headers->setStatusCode(301, "Permanently Moved");
+        $this->headers->addHeaders(array(
+            'X-Foo'    => 'bar',
+            'X-Bar'    => 'baz',
+            'Location' => 'http://foo.bar/baz',
+        ));
+        $this->testCanParseHeadersFromString();
+        $this->assertFalse($this->headers->has('X-Foo'));
+        $this->assertFalse($this->headers->has('X-Bar'));
+        $headers = $this->headers->get('Location');
+        $this->assertEquals(1, count($headers));
+        $this->assertNotEquals('http://foo.bar/baz', $headers->top()->getValue());
     }
 }
