@@ -14,12 +14,12 @@ interface Request
     public function setHeaders(HttpRequestHeaders $headers);
 
     /* accessors for various superglobals */
-    public function query($name = null);
-    public function post($name = null);
-    public function cookie($name = null);
+    public function query($name = null, $default = null);
+    public function post($name = null, $default = null);
+    public function cookie($name = null, $default = null);
     public function file($name = null);
-    public function server($name = null);
-    public function env($name = null);
+    public function server($name = null, $default = null);
+    public function env($name = null, $default = null);
     public function headers($name = null);
 
     /* URI decomposition */
