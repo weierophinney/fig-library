@@ -1,6 +1,6 @@
 <?php
 
-namespace Fig\Http;
+namespace Fig;
 
 use ArrayAccess,
     Countable,

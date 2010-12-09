@@ -2,7 +2,10 @@
 
 namespace Fig\Http;
 
-interface HttpRequest
+use Fig\Request,
+    Fig\Parameters;
+
+interface HttpRequest extends Request
 {
     /* mutators for various superglobals */
     public function setQuery(Parameters $query);
@@ -22,7 +25,6 @@ interface HttpRequest
     public function server($name = null, $default = null);
     public function env($name = null, $default = null);
     public function headers($name = null);
-    public function body();
 
     /* URI decomposition */
     public function getRequestUri();
@@ -61,10 +63,4 @@ interface HttpRequest
     public function getUri(); // returns full URI string: scheme, host, port, base URL, path info, and query string
     public static function create($uri, $method = 'get' /** .. more args */);
     public function __clone(); // not sure if this needs to be in interface
-
-    /* Create HTTP request */
-    public function __toString();
-
-    /* Create object from "document" */
-    public function fromString($string);
 }
