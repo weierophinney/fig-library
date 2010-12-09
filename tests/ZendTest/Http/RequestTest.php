@@ -16,7 +16,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     {
         foreach (array('query', 'post', 'cookie', 'file', 'server', 'env') as $type) {
             $collection = $this->request->{$type}();
-            $this->assertType('Fig\Http\Parameters', $collection);
+            $this->assertType('Fig\Parameters', $collection);
             $this->assertType('Zend\Http\Parameters', $collection);
         }
     }
@@ -185,13 +185,13 @@ class RequestTest extends \PHPUnit_Framework_TestCase
 
     public function testBodyIsNullByDefault()
     {
-        $this->assertNull($this->request->body());
+        $this->assertNull($this->request->getContent());
     }
 
     public function testBodyIsMutable()
     {
         $this->request->setRawBody('foo bar baz');
-        $this->assertEquals('foo bar baz', $this->request->body());
+        $this->assertEquals('foo bar baz', $this->request->getContent());
     }
 
     public function testCanRepresentRequestAsString()
@@ -220,7 +220,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($this->request->isPut());
         $this->assertEquals('/baz', $this->request->getRequestUri());
-        $body = rtrim($this->request->body());
+        $body = rtrim($this->request->getContent());
         $this->assertEquals('This is the request body.', $body);
 
         $headers = $this->request->headers();

@@ -3,9 +3,9 @@
 namespace Zend\Http;
 
 use ArrayObject,
-    Fig\Http\Parameters as HttpParameters;
+    Fig\Parameters as ParametersDescription;
 
-class Parameters extends ArrayObject implements HttpParameters
+class Parameters extends ArrayObject implements ParametersDescription
 {
     /**
      * Constructor

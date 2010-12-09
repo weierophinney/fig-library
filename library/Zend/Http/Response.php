@@ -2,12 +2,12 @@
 
 namespace Zend\Http;
 
-use Fig\Http\HttpResponse,
+use Zend\Stdlib\Response as BaseResponse,
+    Fig\Http\HttpResponse,
     Fig\Http\HttpResponseHeaders;
 
-class Response implements HttpResponse
+class Response extends BaseResponse implements HttpResponse
 {
-    protected $content;
     protected $headers;
 
     /**
@@ -101,28 +101,6 @@ class Response implements HttpResponse
     }
 
     /* mutators and accessors */
-
-    /**
-     * Get response content
-     * 
-     * @return string
-     */
-    public function getContent()
-    {
-        return $this->content;
-    }
-
-    /**
-     * Set response content
-     * 
-     * @param  string $content 
-     * @return Response
-     */
-    public function setContent($content)
-    {
-        $this->content = (string) $content;
-        return $this;
-    }
 
     /**
      * Get response headers

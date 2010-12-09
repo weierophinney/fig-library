@@ -2,11 +2,12 @@
 
 namespace Zend\Http;
 
-use Fig\Http\HttpRequest,
+use Zend\Stdlib\Request as BaseRequest,
+    Fig\Http\HttpRequest,
     Fig\Http\HttpRequestHeaders,
-    Fig\Http\Parameters as HttpParameters;
+    Fig\Parameters as HttpParameters;
 
-class Request implements HttpRequest
+class Request extends BaseRequest implements HttpRequest
 {
     protected $queryParams;
     protected $postParams;
@@ -198,7 +199,7 @@ class Request implements HttpRequest
         return $headers;
     }
 
-    public function body()
+    public function getContent()
     {
         if (null === $this->rawBody) {
             if ($this->isPost() || $this->isPut()) {
@@ -366,7 +367,7 @@ class Request implements HttpRequest
     /* Create HTTP request */
     public function __toString()
     {
-        return $this->headers() . "\r\n" . $this->body();
+        return $this->headers() . "\r\n" . $this->getContent();
     }
 
     /* Create object from "document" */
