@@ -10,7 +10,7 @@ interface HttpResponse extends Response
 
     public function sendHeaders();
     public function sendContent();
-    public function send(); // send both headers and content
+    // public function send(); // send both headers and content; defined in Fig\Response
 
     /* mutators and accessors */
     public function getHeaders();

@@ -4,7 +4,7 @@ namespace Zend\Stdlib;
 
 use Fig\Response as ResponseDescription;
 
-class Response implements ResponseDescription extends Message
+class Response extends Message implements ResponseDescription
 {
     public function send()
     {

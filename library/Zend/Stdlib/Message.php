@@ -41,9 +41,10 @@ class Message implements MessageDescription
      * Retrieve all metadata or a single metadatum as specified by key
      * 
      * @param  null|string|int $key 
+     * @param  null|mixed $default
      * @return mixed
      */
-    public function getMetadata($key = null)
+    public function getMetadata($key = null, $default = null)
     {
         if (null === $key) {
             return $this->metadata;
@@ -57,7 +58,7 @@ class Message implements MessageDescription
             return $this->metadata[$key];
         }
 
-        return null;
+        return $default;
     }
 
     /**

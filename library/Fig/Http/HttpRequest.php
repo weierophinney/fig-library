@@ -38,7 +38,10 @@ interface HttpRequest extends Request
     public function getBaseUrl();
     public function getScriptName();
 
-    /* capabilities */
+    /* Capabilities 
+     *
+     * These may be pushed into an additional interface.
+     */
     public function getMethod();
     public function setMethod($method);
     public function getETags();
